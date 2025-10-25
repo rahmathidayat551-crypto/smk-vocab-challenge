@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocab Vocational Challenge - SMK</title>
+    <!-- Memuat Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Lucide Icons untuk tampilan yang lebih baik -->
+    <script type="module">
+        import { createIcons, icons } from 'https://cdn.jsdelivr.net/npm/lucide-esm@latest';
+        createIcons({ icons });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Abu muda */
+        }
+        .card {
+            background-color: #ffffff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #10b981; /* Emerald 500 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .btn-primary:hover {
+            background-color: #059669; /* Emerald 600 */
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background-color: #60a5fa; /* Blue 400 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .btn-secondary:hover {
+            background-color: #3b82f6; /* Blue 500 */
+            transform: translateY(-1px);
+        }
+        .input-field {
+            border: 2px solid #d1d5db;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: border-color 0.3s;
+        }
+        .input-field:focus {
+            border-color: #10b981;
+            outline: none;
+        }
+        /* Style untuk kategori */
+        .category-card {
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+        .category-card:hover {
+            border-color: #10b981;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 min-h-screen flex items-center justify-center">
+
+    <!-- Kontainer Utama Aplikasi -->
+    <div id="app" class="w-full max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-gray-800">Vocab Vocational Challenge</h1>
+            <p class="text-gray-600 mt-2">Asah Kosakata Kejuruan Anda! Cocokkan Kata Bahasa Inggris yang Teracak.</p>
+        </header>
+
+        <!-- Pesan Status dan Notifikasi -->
+        <div id="notification-area" class="fixed top-4 left-1/2 transform -translate-x-1/2 w-full max-w-sm z-50">
+            <!-- Notifikasi akan muncul di sini -->
+        </div>
+
+        <!-- Tampilan ID Pengguna (Wajib untuk Multi-user App) -->
+        <div id="user-info" class="text-center text-sm text-gray-500 mb-4 p-2 bg-gray-100 rounded-lg shadow-inner">
+            <span id="user-id">Memuat data pengguna...</span>
+        </div>
+
+        <!-- Tampilan Utama: Pilih Jurusan -->
+        <div id="screen-category" class="card p-6 rounded-xl">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-700">Pilih Jurusan Anda</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Tata Busana -->
+                <div class="category-card p-4 rounded-xl text-center shadow hover:shadow-lg transition duration-300" data-category="Tata Busana" onclick="selectCategory('Tata Busana', this)">
+                    <i data-lucide="scissors" class="w-10 h-10 mx-auto text-pink-500 mb-3"></i>
+                    <h3 class="text-lg font-bold text-gray-700">Tata Busana</h3>
+                    <p class="text-sm text-gray-500">Fashion & Garment</p>
+                </div>
+                <!-- ATPH -->
+                <div class="category-card p-4 rounded-xl text-center shadow hover:shadow-lg transition duration-300" data-category="ATPH" onclick="selectCategory('ATPH', this)">
+                    <i data-lucide="leaf" class="w-10 h-10 mx-auto text-green-500 mb-3"></i>
+                    <h3 class="text-lg font-bold text-gray-700">ATPH</h3>
+                    <p class="text-sm text-gray-500">Agri Hortikultura</p>
+                </div>
+                <!-- TKR -->
+                <div class="category-card p-4 rounded-xl text-center shadow hover:shadow-lg transition duration-300" data-category="TKR" onclick="selectCategory('TKR', this)">
+                    <i data-lucide="car-service" class="w-10 h-10 mx-auto text-red-500 mb-3"></i>
+                    <h3 class="text-lg font-bold text-gray-700">TKR</h3>
+                    <p class="text-sm text-gray-500">Teknik Kendaraan Ringan</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tampilan Game -->
+        <div id="screen-game" class="card p-6 rounded-xl hidden">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <button class="text-gray-500 hover:text-gray-700 flex items-center" onclick="showCategoryScreen()">
+                    <i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i>
+                    <span class="font-medium">Kembali</span>
+                </button>
+                <h2 id="game-title" class="text-2xl font-bold text-gray-800"></h2>
+            </div>
+
+            <div class="text-center mb-6">
+                <p class="text-lg font-medium text-gray-600">Skor Anda: <span id="current-score" class="text-green-600 font-bold">0</span></p>
+                <p class="text-sm text-gray-500">Skor Terbaik: <span id="high-score" class="font-semibold">0</span></p>
+            </div>
+
+            <div id="question-area" class="p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg mb-6 shadow-md">
+                <p id="word-hint" class="text-gray-700 mb-3 font-semibold text-lg"></p>
+                <h3 id="scrambled-word" class="text-4xl font-extrabold text-gray-900 tracking-wider break-all p-4 bg-white rounded-lg shadow-inner select-all"></h3>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="answer-input" class="input-field flex-grow text-lg" placeholder="Ketik jawaban Anda di sini (English)" onkeyup="if(event.key === 'Enter') checkAnswer()">
+                <button class="btn-primary" onclick="checkAnswer()">
+                    <i data-lucide="check" class="w-5 h-5 mr-2 inline-block"></i>
+                    Cek Jawaban
+                </button>
+            </div>
+        </div>
+
+        <!-- Tampilan Papan Peringkat -->
+        <div id="screen-leaderboard" class="card p-6 rounded-xl mt-8">
+            <h2 class="text-2xl font-semibold mb-6 text-gray-700 flex items-center justify-center">
+                <i data-lucide="trophy" class="w-6 h-6 mr-2 text-yellow-500"></i>
+                Papan Peringkat (Global)
+            </h2>
+            <div id="leaderboard-content" class="space-y-2">
+                <p class="text-center text-gray-500">Memuat skor terbaik...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modals untuk Pesan Pemenang/Kalah (Menggantikan alert()) -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="hideModal()"></div>
+    <div id="game-modal" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-xl shadow-2xl z-50 w-full max-w-sm hidden">
+        <h3 id="modal-title" class="text-2xl font-bold mb-4 text-center text-gray-800"></h3>
+        <p id="modal-message" class="text-center text-gray-600 mb-6"></p>
+        <div class="flex justify-center">
+            <button class="btn-secondary" onclick="hideModal(); nextWord();">Lanjut Main</button>
+        </div>
+    </div>
+
+
+    <!-- Skrip Firebase dan Logika Game -->
+    <script type="module">
+        // Global variables for Firebase configuration (MANDATORY USE)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, limit, orderBy, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Set Firebase logging level (Optional but helpful for debugging)
+        setLogLevel('debug');
+
+        let db;
+        let auth;
+        let currentUserId = null;
+        let currentCategory = null;
+        let currentWordIndex = -1;
+        let currentScore = 0;
+        let currentHighScore = 0;
+        let words = [];
+
+        // Kosa kata untuk setiap jurusan
+        const vocabData = {
+            "Tata Busana": [
+                { word: "Sewing Machine", hint: "Mesin untuk menjahit kain dengan benang." },
+                { word: "Fabric", hint: "Bahan utama yang digunakan untuk membuat pakaian." },
+                { word: "Pattern", hint: "Cetakan atau pola yang digunakan sebagai panduan pemotongan kain." },
+                { word: "Zipper", hint: "Pengikat yang terdiri dari dua baris gigi, sering digunakan pada jaket atau celana." },
+                { word: "Thread", hint: "Benang yang dimasukkan ke dalam jarum untuk menjahit." },
+                { word: "Hem", hint: "Tepi lipatan pada pakaian untuk mencegah serat terurai." },
+                { word: "Tailor", hint: "Orang yang membuat, memperbaiki, atau mengubah pakaian, terutama jas dan pakaian formal." },
+                { word: "Cutter", hint: "Alat tajam untuk memotong kain, sering berbentuk roda atau gunting." },
+                { word: "Mannequin", hint: "Patung yang digunakan untuk memamerkan pakaian di toko." },
+                { word: "Seam", hint: "Garis di mana dua potong kain dijahit menjadi satu." }
+            ],
+            "ATPH": [
+                { word: "Seed", hint: "Benih, bagian tumbuhan yang ditanam untuk menghasilkan tanaman baru." },
+                { word: "Soil", hint: "Tanah, lapisan atas bumi tempat tanaman tumbuh." },
+                { word: "Fertilizer", hint: "Pupuk, bahan kimia atau alami yang ditambahkan ke tanah untuk nutrisi." },
+                { word: "Pesticide", hint: "Pembasmi hama, bahan kimia untuk membunuh serangga atau organisme perusak tanaman." },
+                { word: "Harvest", hint: "Panen, tindakan mengumpulkan hasil pertanian yang sudah matang." },
+                { word: "Irrigation", hint: "Irigasi, sistem pengairan buatan untuk lahan pertanian." },
+                { word: "Greenhouse", hint: "Rumah kaca, struktur tertutup untuk budidaya tanaman dalam lingkungan terkontrol." },
+                { word: "Cultivation", hint: "Budidaya, persiapan lahan untuk menanam tanaman." },
+                { word: "Hoe", hint: "Cangkul, alat tangan untuk menggali dan menghilangkan gulma." },
+                { word: "Paddy", hint: "Padi, tanaman yang menghasilkan beras." }
+            ],
+            "TKR": [
+                { word: "Engine", hint: "Mesin, bagian utama mobil yang menghasilkan tenaga." },
+                { word: "Spark Plug", hint: "Busi, alat yang menyalakan campuran bahan bakar dan udara di ruang bakar." },
+                { word: "Brake", hint: "Rem, sistem yang memperlambat atau menghentikan kendaraan." },
+                { word: "Wrench", hint: "Kunci pas, alat untuk memutar baut dan mur." },
+                { word: "Tire", hint: "Ban, bagian bundar yang menutupi roda." },
+                { word: "Battery", hint: "Aki, sumber tenaga listrik utama kendaraan." },
+                { word: "Radiator", hint: "Pendingin, alat untuk menjaga suhu mesin tetap stabil." },
+                { word: "Transmission", hint: "Transmisi, sistem pemindah tenaga dari mesin ke roda." },
+                { word: "Axle", hint: "As, batang yang menghubungkan sepasang roda." },
+                { word: "Oil Filter", hint: "Penyaring oli, alat untuk membersihkan oli mesin." }
+            ]
+        };
+
+        // --- Fungsi Helper Game ---
+
+        // Fungsi untuk mengacak urutan huruf dalam sebuah kata
+        function scrambleWord(word) {
+            const letters = word.toUpperCase().replace(/\s/g, '').split(''); // Hapus spasi dan jadikan huruf besar
+            for (let i = letters.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [letters[i], letters[j]] = [letters[j], letters[i]];
+            }
+            return letters.join('');
+        }
+
+        // Fungsi untuk menampilkan modal custom (menggantikan alert())
+        function showModal(title, message, isCorrect) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            const modal = document.getElementById('game-modal');
+            const backdrop = document.getElementById('modal-backdrop');
+
+            // Warna modal berdasarkan hasil
+            if (isCorrect) {
+                modal.classList.remove('border-red-500');
+                modal.classList.add('border-green-500');
+            } else {
+                modal.classList.remove('border-green-500');
+                modal.classList.add('border-red-500');
+            }
+            modal.style.borderWidth = '5px';
+
+            modal.classList.remove('hidden');
+            backdrop.classList.remove('hidden');
+        }
+
+        // Fungsi untuk menyembunyikan modal
+        window.hideModal = function() {
+            document.getElementById('game-modal').classList.add('hidden');
+            document.getElementById('modal-backdrop').classList.add('hidden');
+        }
+
+        // Fungsi untuk menampilkan notifikasi singkat di tengah atas
+        function showNotification(message, type = 'success') {
+            const area = document.getElementById('notification-area');
+            const color = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            const html = `
+                <div class="${color} text-white p-3 rounded-lg shadow-xl mb-3 opacity-0 transition-opacity duration-500" role="alert">
+                    ${message}
+                </div>
+            `;
+            area.insertAdjacentHTML('afterbegin', html);
+            const notification = area.firstChild;
+            
+            // Animasi masuk
+            setTimeout(() => notification.classList.remove('opacity-0'), 10);
+
+            // Animasi keluar dan hapus
+            setTimeout(() => {
+                notification.classList.add('opacity-0');
+                notification.addEventListener('transitionend', () => notification.remove());
+            }, 3000);
+        }
+
+        // --- Logika Game ---
+
+        // Fungsi yang dipanggil saat memilih kategori
+        window.selectCategory = function(category, element) {
+            currentCategory = category;
+            currentScore = 0;
+            currentWordIndex = -1;
+
+            // Reset tampilan
+            document.getElementById('current-score').textContent = currentScore;
+            document.getElementById('answer-input').value = '';
+
+            // Tampilkan layar game
+            document.getElementById('screen-category').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('game-title').textContent = `${category} Vocab Challenge`;
+
+            // Reset border pada semua kartu
+            document.querySelectorAll('.category-card').forEach(card => card.style.borderColor = 'transparent');
+            // Beri border pada kartu yang dipilih
+            element.style.borderColor = '#10b981';
+
+            // Muat kosa kata, acak urutannya, dan mulai
+            words = [...vocabData[category]].sort(() => Math.random() - 0.5);
+            loadHighScore(category);
+            nextWord();
+        }
+
+        // Fungsi untuk menampilkan kata berikutnya
+        window.nextWord = function() {
+            currentWordIndex++;
+            document.getElementById('answer-input').value = '';
+            document.getElementById('answer-input').focus();
+
+            if (currentWordIndex >= words.length) {
+                // Semua kata sudah selesai
+                showModal("Luar Biasa!", `Selamat! Anda telah menyelesaikan semua kata di jurusan ${currentCategory} dengan skor akhir ${currentScore}!`, true);
+                
+                // Mulai lagi dari awal dengan urutan kata baru
+                words = [...vocabData[currentCategory]].sort(() => Math.random() - 0.5);
+                currentWordIndex = 0;
+            }
+
+            const current = words[currentWordIndex];
+            document.getElementById('word-hint').textContent = `Petunjuk: ${current.hint}`;
+            document.getElementById('scrambled-word').textContent = scrambleWord(current.word);
+        }
+
+        // Fungsi untuk mengecek jawaban
+        window.checkAnswer = function() {
+            if (currentWordIndex === -1) return;
+
+            const inputElement = document.getElementById('answer-input');
+            const userAnswer = inputElement.value.trim().toLowerCase();
+            const correctAnswer = words[currentWordIndex].word.toLowerCase();
+            const originalCorrectAnswer = words[currentWordIndex].word;
+
+            if (!userAnswer) {
+                showNotification("Jawaban tidak boleh kosong.", 'error');
+                return;
+            }
+
+            if (userAnswer === correctAnswer) {
+                currentScore += 10;
+                document.getElementById('current-score').textContent = currentScore;
+                
+                showModal("Jawaban Benar!", `Kata yang Benar: ${originalCorrectAnswer}`, true);
+                
+                // Cek High Score dan Simpan jika perlu
+                if (currentScore > currentHighScore) {
+                    currentHighScore = currentScore;
+                    document.getElementById('high-score').textContent = currentHighScore;
+                    saveHighScore(currentCategory, currentScore);
+                    showNotification(`SKOR TERTINGGI BARU! ${currentScore} poin!`, 'success');
+                }
+                
+            } else {
+                showModal("Jawaban Salah!", `Coba lagi! Kata yang benar adalah: ${originalCorrectAnswer}`, false);
+                // Jika salah, skor kembali ke 0
+                currentScore = 0;
+                document.getElementById('current-score').textContent = currentScore;
+            }
+        }
+
+        // Fungsi untuk kembali ke layar pemilihan kategori
+        window.showCategoryScreen = function() {
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-category').classList.remove('hidden');
+            currentCategory = null;
+        }
+
+
+        // --- Logika Firebase/Firestore ---
+
+        // Path Firestore: /artifacts/{appId}/public/data/highScores
+        const getGlobalScoresRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'highScores');
+        // Path Firestore: /artifacts/{appId}/users/{userId}/highScores
+        const getPersonalScoreRef = (category) => doc(db, 'artifacts', appId, 'users', currentUserId, 'highScores', category);
+
+        // Inisialisasi Firebase dan Autentikasi
+        async function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Autentikasi
+                await new Promise((resolve) => {
+                    if (initialAuthToken) {
+                        signInWithCustomToken(auth, initialAuthToken).then(() => resolve());
+                    } else {
+                        signInAnonymously(auth).then(() => resolve());
+                    }
+                });
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        document.getElementById('user-id').textContent = `ID Pengguna: ${currentUserId}`;
+                        
+                        // Setelah Auth, mulai mendengarkan Leaderboard
+                        listenToLeaderboard();
+                    } else {
+                        // Ini seharusnya tidak terjadi karena kita selalu sign in anonim
+                        document.getElementById('user-id').textContent = `Gagal memuat ID Pengguna.`;
+                    }
+                });
+
+            } catch (error) {
+                console.error("Kesalahan inisialisasi Firebase:", error);
+                document.getElementById('user-id').textContent = `Kesalahan: Gagal terhubung ke database.`;
+            }
+        }
+
+        // Muat High Score pribadi untuk kategori yang dipilih
+        function loadHighScore(category) {
+            if (!currentUserId) return;
+
+            const personalDocRef = getPersonalScoreRef(category);
+
+            onSnapshot(personalDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    currentHighScore = docSnap.data().score || 0;
+                    document.getElementById('high-score').textContent = currentHighScore;
+                } else {
+                    currentHighScore = 0;
+                    document.getElementById('high-score').textContent = 0;
+                }
+                // Tampilkan notifikasi saat High Score pribadi berhasil dimuat
+                showNotification(`High Score ${category} dimuat: ${currentHighScore} poin.`, 'info');
+            }, (error) => {
+                console.error("Kesalahan memuat High Score pribadi:", error);
+                showNotification("Gagal memuat High Score pribadi.", 'error');
+            });
+        }
+
+        // Simpan High Score ke database menggunakan Transaction (untuk memastikan data global konsisten)
+        async function saveHighScore(category, score) {
+            if (!currentUserId) return;
+
+            const personalDocRef = getPersonalScoreRef(category);
+            const globalDocRef = doc(getGlobalScoresRef(), category);
+
+            try {
+                // 1. Simpan High Score pribadi
+                await setDoc(personalDocRef, {
+                    userId: currentUserId,
+                    category: category,
+                    score: score,
+                    timestamp: new Date()
+                }, { merge: true });
+
+                // 2. Perbarui High Score global menggunakan transaction
+                await runTransaction(db, async (transaction) => {
+                    const globalDoc = await transaction.get(globalDocRef);
+                    let currentGlobalScore = 0;
+                    let topUserId = currentUserId;
+
+                    if (globalDoc.exists()) {
+                        currentGlobalScore = globalDoc.data().score || 0;
+                        topUserId = globalDoc.data().userId || currentUserId;
+                    }
+
+                    if (score > currentGlobalScore) {
+                        transaction.set(globalDocRef, {
+                            userId: currentUserId,
+                            category: category,
+                            score: score,
+                            timestamp: new Date()
+                        });
+                    }
+                });
+
+                // Notifikasi disimpan
+                showNotification(`Skor ${score} berhasil disimpan untuk ${category}.`, 'success');
+
+            } catch (error) {
+                console.error("Kesalahan menyimpan skor:", error);
+                showNotification("Gagal menyimpan skor. Cek konsol.", 'error');
+            }
+        }
+
+        // Mendengarkan perubahan Papan Peringkat Global
+        function listenToLeaderboard() {
+            const scoresRef = getGlobalScoresRef();
+            const q = query(scoresRef); // Ambil semua kategori global
+
+            onSnapshot(q, (snapshot) => {
+                const scores = [];
+                snapshot.forEach((doc) => {
+                    scores.push(doc.data());
+                });
+
+                // Urutkan berdasarkan kategori untuk tampilan yang rapi
+                scores.sort((a, b) => a.category.localeCompare(b.category));
+
+                let content = '';
+                if (scores.length === 0) {
+                    content = '<p class="text-center text-gray-500 italic">Belum ada data skor global.</p>';
+                } else {
+                    content += '<div class="space-y-3">';
+                    scores.forEach(score => {
+                        // Tentukan warna berdasarkan kategori
+                        let iconColor = '';
+                        if (score.category === 'Tata Busana') iconColor = 'text-pink-500';
+                        else if (score.category === 'ATPH') iconColor = 'text-green-500';
+                        else if (score.category === 'TKR') iconColor = 'text-red-500';
+                        
+                        content += `
+                            <div class="p-3 bg-gray-50 rounded-lg flex items-center justify-between border-l-4 border-gray-200 shadow-sm">
+                                <div class="flex items-center">
+                                    <span class="font-bold text-xl mr-3 ${iconColor}">${score.score}</span>
+                                    <div>
+                                        <p class="font-semibold text-gray-700">${score.category}</p>
+                                        <p class="text-xs text-gray-500 truncate">ID Pemenang: ${score.userId}</p>
+                                    </div>
+                                </div>
+                                <span class="text-sm font-bold text-gray-700">${score.score} Poin</span>
+                            </div>
+                        `;
+                    });
+                    content += '</div>';
+                }
+                document.getElementById('leaderboard-content').innerHTML = content;
+            }, (error) => {
+                console.error("Kesalahan mendengarkan Leaderboard:", error);
+                document.getElementById('leaderboard-content').innerHTML = '<p class="text-center text-red-500">Gagal memuat papan peringkat.</p>';
+            });
+        }
+        
+        // Mulai aplikasi
+        initializeFirebase();
+
+    </script>
+</body>
+</html>
